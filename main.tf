@@ -47,6 +47,7 @@ resource "aws_instance" "blog" {
 
 module "alb" {
   source = "terraform-aws-modules/alb/aws"
+   version = "9.16"
 
   name    = "blog-alb"
 
@@ -56,29 +57,27 @@ module "alb" {
   subnets = module.blog_vpc.public_subnets
   security_groups = [module.blog_sg.security_group_id]
 
-
-  target_groups = {
-    ex-instance = {
-      name_prefix      = "blog-"
-      backend_protocol = "HTTP"
-      backend_port     = 80
-      target_type      = "instance"
-      targets = {
-        my_target = {
-          target_id = aws_instance.blog.id
-          port      = 80
-        }
+  listeners = {
+    blog_http = {
+      port     = 80
+      protocol = "HTTP"
+    
+      forward = {
+        target_group_key = "blog_asg"
       }
     }
   }
 
-  listeners = {
-    ex-http =  {
-      port               = 80
-      protocol           = "HTTP"
-      target_group_index = 0
+  target_groups = {
+    blog_asg = {
+      name_prefix      = "blog-"
+      protocol         = "HTTP"
+      port             = 80
+      target_type      = "instance"
+      # Required argument to attach to the ASG later.
+      create_attachment = false
     }
-  }
+ }
 
   tags = {
     Environment = "dev"
