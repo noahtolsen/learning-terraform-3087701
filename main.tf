@@ -82,7 +82,7 @@ module "blog_alb" {
 
   target_groups = {
     blog_asg = {
-      name_prefix      = "${var.environment.name}-"
+      name_prefix      = "blog-"
       protocol         = "HTTP"
       port             = 80
       target_type      = "instance"
